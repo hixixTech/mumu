@@ -66,6 +66,9 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 		const_cast<mu_object*>(receiver), slot_relative_index + relative_count_of_method(rmeta)));
 
 	pMuObjP->add_connect(signal_relative_index + relative_count_of_signal(smeta), pConnect);
+	mu_object_p* pMuRObj = mu_object_p::get(const_cast<mu_object*>(receiver)->get_p());
+	mu_connect_ptr pSenderConnect(new mu_connect(smeta, this, signal_relative_index + relative_count_of_signal(rmeta)));
+	pMuRObj->add_sender(pSenderConnect);
 }
 
 mu_object::~mu_object()
@@ -130,7 +133,7 @@ int index_of_method(mu_metaobject** pMetaObj, mu_method_ptr pMethodSignal)
 
 int match_method(const mu_metaobject* pMetaObj, mu_method_ptr pMethodSignal)
 {
-	
+
 	int nEnd = pMethodSignal->get_method_type() == mu_method::SIGNAL_METHOD ?
 		count_of_signal(pMetaObj) : method_count(pMetaObj);
 	int i = pMethodSignal->get_method_type() == mu_method::SIGNAL_METHOD ? 0 : count_of_signal(pMetaObj);
