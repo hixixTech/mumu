@@ -111,3 +111,13 @@ void mu_object_p::rm_sender(mu_object* pObj)
 	}
 }
 
+void mu_object_p::set_thread_data(mu_thread_data* pThreadData)
+{
+	m_pThreadData = pThreadData;
+}
+
+mu_thread_data* mu_object_p::get_thread_data()
+{
+	return m_pThreadData;
+}
+

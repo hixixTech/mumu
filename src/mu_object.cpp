@@ -2,7 +2,8 @@
 #include "mu_object_p.h"
 #include "mu_method.h"
 #include "mu_warn.h"
-
+#include "mu_thread_data.h"
+#include <windows.h>
 
 
 static int index_of_method(mu_metaobject** pMetaObj, mu_method_ptr pMethodSignal);
@@ -61,29 +62,44 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 		return;
 	}
 	mu_object_p* pMuObjP = mu_object_p::get(pPrivate);
+	mu_object_p* pMuRObj = mu_object_p::get(const_cast<mu_object*>(receiver)->get_p());
 
 	mu_connect_ptr pConnect(new mu_connect(rmeta,
 		const_cast<mu_object*>(receiver), slot_relative_index + relative_count_of_method(rmeta)));
+	pConnect->set_connect_type(type);
 
 	pMuObjP->add_connect(signal_relative_index + relative_count_of_signal(smeta), pConnect);
-	mu_object_p* pMuRObj = mu_object_p::get(const_cast<mu_object*>(receiver)->get_p());
+
 	mu_connect_ptr pSenderConnect(new mu_connect(smeta, this, signal_relative_index + relative_count_of_signal(rmeta)));
 	pMuRObj->add_sender(pSenderConnect);
 }
 
 mu_object::~mu_object()
 {
-	delete mu_object_p::get(pPrivate);
+	mu_object_p* p = mu_object_p::get(pPrivate);
+	mu_thread_data* pData = p->get_thread_data();
+	pData->decrease_ref();
+	delete p;
 }
 
 mu_object::mu_object()
 {
-	pPrivate = reinterpret_cast<void*>(new mu_object_p(this));
+	mu_object_p* p = new mu_object_p(this);
+	pPrivate = reinterpret_cast<void*>(p);
+	mu_thread_data* pData = mu_thread_data::get_current();
+	pData->add_ref();
+	p->set_thread_data(pData);
 }
 
 void* mu_object::get_p()
 {
 	return pPrivate;
+}
+
+void mu_object::set_dispatcher(mu_event_dispatcher* pDispatcher)
+{
+	mu_thread_data* pData = mu_thread_data::get_current();
+	pData->set_event_dispatcher(pDispatcher);
 }
 
 
@@ -104,9 +120,47 @@ void mu_metaobject::activate(mu_object *sender, const mu_metaobject *m, int loca
 	mu_connect_list_ptr pList = pMuObjP->get_connect_list(signal_relative_index);
 	for (auto it = pList->begin(); it != pList->end(); ++it)
 	{
-		mu_metaobject* rmeta = (*it)->get_metaobj();
-		int method_index = (*it)->get_method_index() - relative_count_of_method(rmeta);
-		rmeta->d.static_metacall(sender, mu_metaobject::InvokeMetaMethod, method_index, argv);
+		mu_object* receiver = (*it)->get_obj();
+		mu_object_p* pMuObjR = mu_object_p::get(receiver->get_p());
+		mu_thread_data* pThreadData = pMuObjR->get_thread_data();
+		DWORD currentId = GetCurrentThreadId();
+		if ((currentId != pThreadData->get_thread_id()
+			&& (*it)->get_connect_type() == ConnectionType::AutoConnection)
+			|| (*it)->get_connect_type() == ConnectionType::QueuedConnection)
+		{
+			mu_metaobject* rmeta = (*it)->get_metaobj();
+			int method_index = (*it)->get_method_index() - relative_count_of_method(rmeta);
+			mu_type* pType = rmeta->d.static_metatype(method_index, argv);
+			if (!pType)
+			{
+				mu_warn::out_put("send error:Cannot Find Mu_Type.\n");
+			}
+			else
+			{
+				mu_event* pEvent = new mu_event;
+				pEvent->set_metaobj(rmeta);
+				pEvent->set_type(pType);
+				pEvent->set_method_index(method_index);
+				pEvent->set_receiver(receiver);
+				mu_event_dispatcher* pDisptcher = pThreadData->get_event_dispatcher();
+				if (!pDisptcher)
+				{
+					mu_warn::out_put("send error:Please SetUp Dispatcher for current thread.\n");
+				}
+				else
+				{
+					pDisptcher->post_event(pEvent);
+				}
+			}
+		}
+		else if ((*it)->get_connect_type() == ConnectionType::DirectConnection
+			|| (*it)->get_connect_type() == ConnectionType::AutoConnection)
+		{
+			mu_metaobject* rmeta = (*it)->get_metaobj();
+			int method_index = (*it)->get_method_index() - relative_count_of_method(rmeta);
+			rmeta->d.static_metacall(receiver, mu_metaobject::InvokeMetaMethod, method_index, argv);
+		}
+
 	}
 }
 
@@ -203,4 +257,15 @@ int relative_count_of_method(const mu_metaobject* pMetaObj)
 		nRetCount += method_count(m);
 	}
 	return nRetCount;
+}
+
+void mu_event_dispatcher::handle_event(mu_event* pEvent)
+{
+	mu_metaobject* rmeta = pEvent->get_metaobj();
+	int method_index = pEvent->get_method_index();
+	mu_type* pType = pEvent->get_type();
+	void* argv[] = { 0, reinterpret_cast<void*>(pType) };
+	rmeta->d.static_metacall(pEvent->get_receiver(), mu_metaobject::InvokeMetaMethod, method_index, argv);
+	delete pEvent;
+	delete pType;
 }

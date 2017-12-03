@@ -25,3 +25,13 @@ mu_object* mu_connect::get_obj()
 {
 	return m_pObj;
 }
+
+void mu_connect::set_connect_type(int nConnectType)
+{
+	m_nConnectType = nConnectType;
+}
+
+int mu_connect::get_connect_type()
+{
+	return m_nConnectType;
+}

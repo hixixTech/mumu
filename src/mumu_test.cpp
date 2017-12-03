@@ -3,7 +3,7 @@
 
 mumu_test::mumu_test()
 {
-	connect(this, SIGNAL(del_func(int, char)), this, SLOT(recv_func(int, char)));
+	connect(this, SIGNAL(del_func(int, char)), this, SLOT(recv_func(int, char)), ConnectionType::QueuedConnection);
 	MU_EMIT del_func(5, 6);
 }
 

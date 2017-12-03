@@ -12,10 +12,13 @@ public:
 	int get_method_index();
 	mu_metaobject* get_metaobj();
 	mu_object* get_obj();
+	int get_connect_type();
+	void set_connect_type(int nConnectType);
 private:
 	mu_metaobject* m_pMetaObj;
 	mu_object* m_pObj;
 	int m_nMethodIndex;
+	int m_nConnectType;
 };
 
 typedef std::shared_ptr<mu_connect> mu_connect_ptr;

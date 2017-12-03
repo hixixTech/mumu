@@ -15,3 +15,12 @@ public MU_SLOTS:
 	void recv_func(int a, char c);
 };
 
+
+class mumu_test_111 :public mumu_test
+{
+	MU_OBJECT
+MU_SIGNALS:
+	void send_func2(int a, char c);
+	void add_func3();
+	void del_func4(int a, char c);
+};

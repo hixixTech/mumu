@@ -10,6 +10,20 @@
 
 # define SIGNAL(a)   "2"#a
 
+class mu_event;
+
+class mu_event_dispatcher
+{
+public:
+	virtual void post_event(mu_event* pEvent) = 0;
+	void handle_event(mu_event* pEvent);
+};
+
+class mu_type
+{
+
+};
+
 enum ConnectionType 
 {
 	AutoConnection,
@@ -26,6 +40,7 @@ struct mu_metaobject
 	enum Call
 	{
 		InvokeMetaMethod,
+		AsyncInvokeMetaMethod,
 		IndexOfMethod
 	};
 	static void activate(mu_object *sender, int signal_index, void **argv);
@@ -38,8 +53,9 @@ struct mu_metaobject
 		const std::string* stringdata;
 		const unsigned int *data;
 		typedef void(*StaticMetacallFunction)(mu_object*, mu_metaobject::Call, int, void **);
+		typedef mu_type*(*StaticMetaTypeFunction)(int, void **);
 		StaticMetacallFunction static_metacall;
-		const mu_metaobject * const *relatedMetaObjects;
+		StaticMetaTypeFunction static_metatype;
 		void *extradata; //reserved for future use
 	} d;
 };
@@ -50,6 +66,7 @@ public: \
 	virtual const mu_metaobject *metaObject() const; \
 private:\
 	static void mu_static_metacall(mu_object *, mu_metaobject::Call, int, void **); \
+	static mu_type* mu_static_metatype(int _id, void **_a); \
 struct QPrivateSignal {};
 
 class mu_object
@@ -68,6 +85,7 @@ public:
 	void mu_object::connect(const char *signal,
 		const mu_object *receiver, const char *method,
 		ConnectionType type = ConnectionType::AutoConnection);
+	static void set_dispatcher(mu_event_dispatcher* pDispatcher);
 	void* get_p();
 private:
 	void* pPrivate;
