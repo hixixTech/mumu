@@ -265,7 +265,7 @@ void mu_event_dispatcher::handle_event(mu_event* pEvent)
 	int method_index = pEvent->get_method_index();
 	mu_type* pType = pEvent->get_type();
 	void* argv[] = { 0, reinterpret_cast<void*>(pType) };
-	rmeta->d.static_metacall(pEvent->get_receiver(), mu_metaobject::InvokeMetaMethod, method_index, argv);
+	rmeta->d.static_metacall(pEvent->get_receiver(), mu_metaobject::AsyncInvokeMetaMethod, method_index, argv);
 	delete pEvent;
 	delete pType;
 }

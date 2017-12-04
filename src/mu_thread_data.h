@@ -4,7 +4,7 @@
 #include "mu_mutex.h"
 
 class mu_type;
-class mu_metaobject;
+struct mu_metaobject;
 class mu_event_dispatcher;
 class mu_object;
 
