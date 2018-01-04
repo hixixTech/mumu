@@ -54,7 +54,7 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 	}
 	mu_metaobject* rmeta = const_cast<mu_metaobject*>(receiver->metaObject());
 
-	int slot_relative_index = index_of_method(&smeta, pSlot);
+	int slot_relative_index = index_of_method(&rmeta, pSlot);
 
 	if (slot_relative_index == -1)
 	{

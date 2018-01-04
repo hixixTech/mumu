@@ -19,7 +19,7 @@ mu_object_p::~mu_object_p()
 		{
 			mu_object* pSender = (*it)->get_obj();
 			mu_object_p* pSenerP = mu_object_p::get(pSender->get_p());
-			pSenerP->disconnect((*it)->get_method_index(), pSender);
+			pSenerP->disconnect((*it)->get_method_index(), m_pOwner);
 		}
 	}
 	mu_mutex_locker locker(m_pConnectMethodsMutex);

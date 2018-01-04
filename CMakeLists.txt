@@ -2,5 +2,11 @@ cmake_minimum_required (VERSION 2.6)
 project (mumu)
 
 FILE(GLOB_RECURSE MAIN_SRC "./src/*")
-
-add_executable(mumu ${MAIN_SRC})
+set(general_path "${CMAKE_BINARY_DIR}/mumu_generate")
+set(GENERAL_SRC)
+ADD_SUBDIRECTORY(test)
+if (EXISTS ${general_path})
+	FILE(GLOB_RECURSE GENERAL_SRC "${general_path}/*.cpp")
+	source_group("mumu_generate" FILES ${GENERAL_SRC})
+endif()
+add_executable(mumu ${MAIN_SRC} ${GENERAL_SRC})
