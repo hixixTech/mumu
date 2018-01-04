@@ -18,6 +18,8 @@ public:
 	void disconnect(int signal_relative_index, mu_object* pObj);
 	void rm_sender(mu_object* pObj);
 	void set_thread_data(mu_thread_data* pThreadData);
+	void begin_connect_list();
+	void end_connect_list();
 	mu_thread_data* get_thread_data();
 private:
 	std::map<int, mu_connect_list_ptr> m_mapConnectMethods;

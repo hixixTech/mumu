@@ -58,7 +58,8 @@ void mu_object_p::add_connect(int signal_relative_index, mu_connect_ptr pConnect
 
 mu_connect_list_ptr mu_object_p::get_connect_list(int signal_relative_index)
 {
-	mu_mutex_locker locker(m_pConnectMethodsMutex);
+	if (m_mapConnectMethods.find(signal_relative_index) == m_mapConnectMethods.end())
+		return nullptr;
 	return m_mapConnectMethods[signal_relative_index];
 }
 
@@ -119,5 +120,15 @@ void mu_object_p::set_thread_data(mu_thread_data* pThreadData)
 mu_thread_data* mu_object_p::get_thread_data()
 {
 	return m_pThreadData;
+}
+
+void mu_object_p::begin_connect_list()
+{
+	m_pConnectMethodsMutex->lock();
+}
+
+void mu_object_p::end_connect_list()
+{
+	m_pConnectMethodsMutex->unlock();
 }
 

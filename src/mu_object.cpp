@@ -23,7 +23,7 @@ void mu_object::connect(mu_object *sender, const char *signal,
 {
 	if (!sender)
 	{
-		mu_warn::out_put("connect error: Params is NULL.");
+		mu_warn::out_put("connect error: Params is NULL.\n");
 		return;
 	}
 	sender->connect(signal, receiver, method, type);
@@ -34,12 +34,12 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 {
 	if (!signal || !receiver || !method)
 	{
-		mu_warn::out_put("connect error: Params is NULL.");
+		mu_warn::out_put("connect error: Params is NULL.\n");
 		return;
 	}
 	if (signal[0] != '2')
 	{
-		mu_warn::out_put("connect error: Slot cannot send sig.");
+		mu_warn::out_put("connect error: Slot cannot send sig.\n");
 		return;
 	}
 	mu_method_ptr pSignal(new mu_method(&signal[1], mu_method::SIGNAL_METHOD));
@@ -49,7 +49,7 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 
 	if (signal_relative_index == -1)
 	{
-		mu_warn::out_put("connect error: Have no such signal.");
+		mu_warn::out_put("connect error: Have no such signal.\n");
 		return;
 	}
 	mu_metaobject* rmeta = const_cast<mu_metaobject*>(receiver->metaObject());
@@ -58,7 +58,7 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 
 	if (slot_relative_index == -1)
 	{
-		mu_warn::out_put("connect error: Have no such slot.");
+		mu_warn::out_put("connect error: Have no such slot.\n");
 		return;
 	}
 	mu_object_p* pMuObjP = mu_object_p::get(pPrivate);
@@ -114,9 +114,10 @@ void mu_metaobject::activate(mu_object *sender, const mu_metaobject *m, int loca
 	mu_object_p* pMuObjP = mu_object_p::get(sender->get_p());
 	if (!pMuObjP->is_connected(signal_relative_index))
 	{
-		mu_warn::out_put("send error: The signal has no connected.");
+		mu_warn::out_put("send error: The signal has no connected.\n");
 		return;
 	}
+	pMuObjP->begin_connect_list();
 	mu_connect_list_ptr pList = pMuObjP->get_connect_list(signal_relative_index);
 	for (auto it = pList->begin(); it != pList->end(); ++it)
 	{
@@ -162,6 +163,7 @@ void mu_metaobject::activate(mu_object *sender, const mu_metaobject *m, int loca
 		}
 
 	}
+	pMuObjP->end_connect_list();
 }
 
 void mu_metaobject::activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv)
