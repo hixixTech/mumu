@@ -1,5 +1,6 @@
 # 安装和使用
-目前只支持vs2013，如果ide是vs2013那么请往下看。    
+目前只支持vs2013，如果ide是vs2013那么请往下看。    
+
 1.克隆代码之后，在代码层中找到bin文件夹。    
 2.注册bin文件夹下面的mumu_addin.dll，windows下面需要管理员权限的cmd窗口，命令行如下：    
   regsvr32 mumu_addin.dll    
