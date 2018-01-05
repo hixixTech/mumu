@@ -5,7 +5,7 @@
 #define MU_SIGNALS public
 #define MU_SLOTS MU_ACCESS(mu_slot)
 #define MU_EMIT
-
+#define MUMUUSESTDAFX
 #ifdef MUMU_EXPORT
 #define DLL_EXPORT __declspec(dllexport)
 #else
