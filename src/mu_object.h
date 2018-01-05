@@ -6,13 +6,19 @@
 #define MU_SLOTS MU_ACCESS(mu_slot)
 #define MU_EMIT
 
+#ifdef MUMU_EXPORT
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT __declspec(dllimport)
+#endif
+
 # define SLOT(a)     "1"#a
 
 # define SIGNAL(a)   "2"#a
 
 class mu_event;
 
-class mu_event_dispatcher
+class DLL_EXPORT mu_event_dispatcher
 {
 public:
 	virtual void post_event(mu_event* pEvent) = 0;
@@ -43,9 +49,9 @@ struct mu_metaobject
 		AsyncInvokeMetaMethod,
 		IndexOfMethod
 	};
-	static void activate(mu_object *sender, int signal_index, void **argv);
-	static void activate(mu_object *sender, const mu_metaobject *, int local_signal_index, void **argv);
-	static void activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv);
+	DLL_EXPORT static void activate(mu_object *sender, int signal_index, void **argv);
+	DLL_EXPORT static void activate(mu_object *sender, const mu_metaobject *, int local_signal_index, void **argv);
+	DLL_EXPORT static void activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv);
 
 	struct
 	{
@@ -69,7 +75,7 @@ private:\
 	static mu_type* mu_static_metatype(int _id, void **_a); \
 struct QPrivateSignal {};
 
-class mu_object
+class DLL_EXPORT mu_object
 {
 	MU_OBJECT
 public:
