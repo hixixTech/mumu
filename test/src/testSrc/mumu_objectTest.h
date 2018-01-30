@@ -19,6 +19,7 @@ MU_SIGNALS:
 public MU_SLOTS:
 	void recv_func(int a, char c);
 	void recv_CC(C* testC, C& testC1);
+	void recv_noparams();
 public:
 	int get_a()
 	{
@@ -65,6 +66,7 @@ public:
 MU_SIGNALS:
 	void send_test(int a, char c);
 	void send_ccc(C* testC, C& testC1);
+	void send_noparams();
 private:
 	int _a;
 	char _c;

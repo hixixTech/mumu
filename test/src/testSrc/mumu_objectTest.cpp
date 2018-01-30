@@ -9,7 +9,10 @@ void A::recv_func(int a, char c)
 	_a = a;
 	_c = c;
 }
-
+void A::recv_noparams()
+{
+	_a = 100;
+}
 void A::recv_CC(C* testC, C& testC1)
 {
 	EXPECT_EQ(_c1, testC->get_data());
@@ -90,6 +93,16 @@ TEST(mu_object, HaveNoSlot)
 	testA.send_func(1, 5);
 	EXPECT_NE(1, testB.get_a());
 	EXPECT_NE(5, testB.get_c());
+}
+
+TEST(mu_object, HaveNoParams)
+{
+	A testA;
+	B testB;
+
+	mu_object::connect(&testB, SIGNAL(send_noparams()), &testA, SLOT(recv_noparams()));
+	testB.send_noparams();
+	EXPECT_EQ(100, testA.get_a());
 }
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);

@@ -62,8 +62,11 @@ mu_method::mu_method(std::string strMethod, Type nType) :m_nType(nType)
 
 				}
 				strTemp += strStars;
-				m_strMethodTypes.push_back(strTemp);
-				strTemp = "";
+ 				if(!strTemp.empty())
+ 				{
+					m_strMethodTypes.push_back(strTemp);
+					strTemp = "";
+				}
 			}
 			if (strMethod[i] == ')')
 			{
