@@ -70,7 +70,7 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 
 	pMuObjP->add_connect(signal_relative_index + relative_count_of_signal(smeta), pConnect);
 
-	mu_connect_ptr pSenderConnect(new mu_connect(smeta, this, signal_relative_index + relative_count_of_signal(rmeta)));
+	mu_connect_ptr pSenderConnect(new mu_connect(smeta, this, signal_relative_index + relative_count_of_signal(smeta)));
 	pMuRObj->add_sender(pSenderConnect);
 }
 
