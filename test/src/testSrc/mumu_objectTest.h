@@ -16,10 +16,12 @@ class A : public mu_object
 	MU_OBJECT
 MU_SIGNALS:
 	void send_func(int a, char c);
+	void DeleteTest();
 public MU_SLOTS:
 	void recv_func(int a, char c);
 	void recv_CC(C* testC, C& testC1);
 	void recv_noparams();
+	void DeleteTestA();
 public:
 	int get_a()
 	{
@@ -46,6 +48,7 @@ class B :public mu_object
 	MU_OBJECT
 public MU_SLOTS:
 	void recv_func(int a, char c);
+	void DeleteTest();
 public:
 	int get_a()
 	{

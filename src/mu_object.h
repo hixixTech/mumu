@@ -7,9 +7,9 @@
 #define MU_EMIT
 #define MUMUUSESTDAFX
 #ifdef MUMU_EXPORT
-#define DLL_EXPORT __declspec(dllexport)
+#define MU_EXPORTS __declspec(dllexport)
 #else
-#define DLL_EXPORT __declspec(dllimport)
+#define MU_EXPORTS __declspec(dllimport)
 #endif
 
 # define SLOT(a)     "1"#a
@@ -18,7 +18,7 @@
 
 class mu_event;
 
-class DLL_EXPORT mu_event_dispatcher
+class MU_EXPORTS mu_event_dispatcher
 {
 public:
 	virtual void post_event(mu_event* pEvent) = 0;
@@ -49,9 +49,9 @@ struct mu_metaobject
 		AsyncInvokeMetaMethod,
 		IndexOfMethod
 	};
-	DLL_EXPORT static void activate(mu_object *sender, int signal_index, void **argv);
-	DLL_EXPORT static void activate(mu_object *sender, const mu_metaobject *, int local_signal_index, void **argv);
-	DLL_EXPORT static void activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv);
+	MU_EXPORTS static void activate(mu_object *sender, int signal_index, void **argv);
+	MU_EXPORTS static void activate(mu_object *sender, const mu_metaobject *, int local_signal_index, void **argv);
+	MU_EXPORTS static void activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv);
 
 	struct
 	{
@@ -75,14 +75,14 @@ private:\
 	static mu_type* mu_static_metatype(int _id, void **_a); \
 struct QPrivateSignal {};
 
-class DLL_EXPORT mu_object
+class MU_EXPORTS mu_object
 {
 	MU_OBJECT
 public:
 	mu_object();
 	virtual ~mu_object();
 MU_SIGNALS:
-	void destroyed(mu_object * obj= 0);
+	void destroyed(mu_object * obj);
 	void objectNameChanged(const std::string &objectName);
 public:
 	static void mu_object::connect(mu_object *sender, const char *signal,

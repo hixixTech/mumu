@@ -76,10 +76,19 @@ void mu_object::connect(const char *signal, const mu_object *receiver,
 
 mu_object::~mu_object()
 {
+	MU_EMIT destroyed(this);
 	mu_object_p* p = mu_object_p::get(pPrivate);
-	mu_thread_data* pData = p->get_thread_data();
-	pData->decrease_ref();
-	delete p;
+	if(!p->is_in_signal())
+	{
+		mu_thread_data* pData = p->get_thread_data();
+		pData->decrease_ref();
+		delete p;
+	}
+	else
+	{
+		p->set_delete_later(true);
+	}
+	
 }
 
 mu_object::mu_object()
@@ -119,8 +128,10 @@ void mu_metaobject::activate(mu_object *sender, const mu_metaobject *m, int loca
 	}
 	pMuObjP->begin_connect_list();
 	mu_connect_list_ptr pList = pMuObjP->get_connect_list(signal_relative_index);
-	for (auto it = pList->begin(); it != pList->end(); ++it)
+	for (auto it = pList->begin(); it != pList->end(); )
 	{
+		auto itNext = it;
+		++itNext;
 		mu_object* receiver = (*it)->get_obj();
 		mu_object_p* pMuObjR = mu_object_p::get(receiver->get_p());
 		mu_thread_data* pThreadData = pMuObjR->get_thread_data();
@@ -161,9 +172,12 @@ void mu_metaobject::activate(mu_object *sender, const mu_metaobject *m, int loca
 			int method_index = (*it)->get_method_index() - relative_count_of_method(rmeta);
 			rmeta->d.static_metacall(receiver, mu_metaobject::InvokeMetaMethod, method_index, argv);
 		}
-
+		it = itNext;
 	}
-	pMuObjP->end_connect_list();
+	if(!pMuObjP->check_delete_later())
+	{
+		pMuObjP->end_connect_list();
+	}
 }
 
 void mu_metaobject::activate(mu_object *sender, int signal_offset, int local_signal_index, void **argv)

@@ -9,6 +9,13 @@ void A::recv_func(int a, char c)
 	_a = a;
 	_c = c;
 }
+
+void A::DeleteTestA()
+{
+	delete this;
+	EXPECT_EQ(true, true);
+}
+
 void A::recv_noparams()
 {
 	_a = 100;
@@ -24,7 +31,11 @@ void B::recv_func(int a, char c)
 	_a = a;
 	_c = c;
 }
-
+void B::DeleteTest()
+{
+	delete this;
+	EXPECT_EQ(true, true);
+}
 TEST(mu_object, GeneralConnect)
 {
 	A testA;
@@ -33,6 +44,22 @@ TEST(mu_object, GeneralConnect)
 	testA.send_func(1, 5);
 	EXPECT_EQ(1, testB.get_a());
 	EXPECT_EQ(5, testB.get_c());
+}
+
+TEST(mu_object, DeleteTest)
+{
+	A* testA = new A;
+	B* testB = new B;
+	mu_object::connect(testA, SIGNAL(DeleteTest()), testB, SLOT(DeleteTest()));
+	testA->DeleteTest();
+	delete testA;
+}
+
+TEST(mu_object, DeleteSelf)
+{
+	A* testA = new A;
+	mu_object::connect(testA, SIGNAL(DeleteTest()), testA, SLOT(DeleteTestA()));
+	testA->DeleteTest();
 }
 
 TEST(mu_object, SigIsNull)
@@ -168,8 +195,8 @@ TEST(mu_object, MuitiThreadDelete)
 {
 	test1 = new B;
 	HANDLE handle = CreateThread(NULL, 0, threadFuncDelete, 0, 0, &nThreadId);
-	
-	for (int i = 0; i < 5000;++i)
+
+	for (int i = 0; i < 5000; ++i)
 	{
 		MU_EMIT test1->send_test(5, 6);
 	}
@@ -183,7 +210,7 @@ TEST(mu_object, SelfDefineType)
 	test_dispatcher dispatcher(create_test_hwnd("testMain1"));
 	mu_object::set_dispatcher(&dispatcher);
 	test1 = new B;
-	C testC,testC1;
+	C testC, testC1;
 	testC.set_data(5);
 	testC1.set_data(6);
 	HANDLE handle = CreateThread(NULL, 0, threadFuncSelfDefineType, 0, 0, &nThreadId);

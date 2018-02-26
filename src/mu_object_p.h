@@ -21,6 +21,9 @@ public:
 	void begin_connect_list();
 	void end_connect_list();
 	mu_thread_data* get_thread_data();
+	void set_delete_later(bool bIsDeleteLater);
+	bool is_in_signal();
+	bool check_delete_later();
 private:
 	std::map<int, mu_connect_list_ptr> m_mapConnectMethods;
 	mu_object* m_pOwner;
@@ -28,5 +31,7 @@ private:
 	std::shared_ptr<mu_mutex> m_pSendersMutex;
 	std::shared_ptr<mu_mutex> m_pConnectMethodsMutex;
 	mu_thread_data* m_pThreadData;
+	bool m_bIsDeleteLater;
+	bool m_bIsInSignal;
 };
 
