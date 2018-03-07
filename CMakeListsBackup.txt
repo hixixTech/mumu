@@ -1,0 +1,109 @@
+cmake_minimum_required (VERSION 2.6)
+
+set(ProjectName "OneAppDll")
+set(LibOutPutDirectory "../../../lib/")
+set(DllOutPutDirectory "../../../bin/")
+set(OutPutName "OneApp")
+
+#设置CMake可以使用相对路径
+cmake_policy(SET CMP0015 NEW)
+
+project (${ProjectName})
+
+#添加库文件
+INCLUDE_DIRECTORIES("../../common" "../../3rd" "../../3rd/CLD2/public" "../../3rd/ampkit/ampkit-4.3.30-cfb16fc0a/ampkit-windows/include" "../../3rd/cryptopp562" "../../3rd/poco-1.6.0/JSON/include" 
+ "../../3rd/poco-1.6.0/Foundation/include/" "../../3rd/poco-1.6.0/Net/include" "../../3rd/poco-1.6.0/Data/include" "../../3rd/poco-1.6.0/Util/include" "../../3rd/jsoncpp/jsoncpp-src-0.6.0-rc2/include/json" "../../3rd/curl/include" "../../3rd/nelo2/include" 
+ "../OneAppEngine" "../OneAppEngine/SearchProvider" "../../3rd/cef" "../../3rd/googletest-master/googletest/include" "../../3rd/ampkit/ampkit-4.3.30-cfb16fc0a/ampkit-windows/include" "../SSharePlugin/include" "../SSharePlugin" "../../3rd/mumu" "../../3rd/jsoncpp/jsoncpp-src-0.6.0-rc2/include" "../../common/MQTTClient" "./" "./VoipPopUIMgr" 
+)
+
+#添加VS过滤器
+function(SUBDIRLIST filter curdir)
+    FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+	FOREACH(child ${children})
+	IF(IS_DIRECTORY ${curdir}/${child})
+		FILE(GLOB SRC ${curdir}/${child}/*.h ${curdir}/${child}/*.cpp)
+		source_group(${filter}${child} FILES ${SRC})
+		SUBDIRLIST(${filter}${child}\\ ${curdir}/${child})
+	ENDIF()
+	ENDFOREACH()
+endfunction()
+SUBDIRLIST("" ${CMAKE_CURRENT_SOURCE_DIR})
+
+#设置库连接目录
+link_directories(${LibOutPutDirectory} ../../3rd/cld2/lib/ ../../3rd/cryptopp562/lib ../../3rd/poco-1.6.0/lib/ ../../3rd/nelo2/lib/)
+
+#查找代码文件
+FILE(GLOB_RECURSE MAIN_SRC ./*.h ./*.cpp ./*.cc)
+
+#设置UNICODE字符集
+add_definitions(-D _UNICODE -D POCO_STATIC)
+
+#设置Debug和Release的输出目录
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG
+		${LibOutPutDirectory} CACHE
+        PATH "Directory where all the .lib files are dumped." FORCE)
+		
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE
+		${LibOutPutDirectory} CACHE
+        PATH "Directory where all the .lib files are dumped." FORCE)
+		
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG
+		${DllOutPutDirectory} CACHE
+		PATH "Directory where .exe and .dll files are dumped." FORCE)
+		
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELASE
+		${DllOutPutDirectory} CACHE
+		PATH "Directory where .exe and .dll files are dumped." FORCE)
+
+#设置Debug输出名没有后缀		
+if(NOT CMAKE_DEBUG_POSTFIX)
+  set(CMAKE_DEBUG_POSTFIX "")
+endif()
+		
+set(general_path "${CMAKE_BINARY_DIR}/mumu_generate")
+set(GENERAL_SRC)
+if (EXISTS ${general_path})
+	FILE(GLOB_RECURSE GENERAL_SRC "${general_path}/*.cpp")
+	source_group("mumu_generate" FILES ${GENERAL_SRC})
+endif()
+
+#添加生成目标
+add_library(${ProjectName} SHARED ${MAIN_SRC} ${COMMON_SRC} ${GENERAL_SRC} 
+../../3rd/MessageBoxUI.cpp ../../3rd/FlashWndHelper.cpp ../../3rd/VideoHelper.cpp ../../3rd/IFClassMgr.cpp
+../../common/OneAppLang.cpp ../../common/strutil.cpp ../../common/StateMgr.cpp ../../common/IdleMonitor.cpp ../../common/BitmapEffect.cpp ../../common/util.cpp ../../common/StoreHelper.cpp ../../common/UiTimer.cpp
+../../common/Encrypt.cpp)
+
+#设置生成文件名
+set_target_properties(${ProjectName} PROPERTIES OUTPUT_NAME ${OutPutName})
+
+#为debug和release设置不同的预处理器
+target_compile_definitions(${ProjectName}
+  PUBLIC $<$<CONFIG:Debug>:SSO ONEAPPDLL_EXPORTS POCO_NO_UNWINDOWS NCS __STDC_LIMIT_MACROS _DEBUG>
+		$<$<CONFIG:Release>:SSO ONEAPPDLL_EXPORTS POCO_NO_UNWINDOWS NCS __STDC_LIMIT_MACROS NDEBUG>
+)
+
+#链接link库目录
+target_link_libraries(${ProjectName} EnvConfig.lib debug ampkit_windowsD.lib debug mumu_d.lib debug jsoncpp_vc12.0_libmdd.lib debug OneAppEngined.lib mosquittopp.lib Comctl32.lib debug DuiLib_ud.lib debug UpdateLibd.lib Version.lib  tomcryptd.lib tommathd.lib debug VerificationD_x86_MD.lib libcef.lib debug libcef_dll_wrapper_d.lib debug winsshared.lib debug mhookd.lib optimized ampkit_windows.lib optimized mumu.lib optimized jsoncpp_vc12.0_libmd.lib optimized OneAppEngine.lib optimized UpdateLib.lib optimized Verification_x86_MD.lib optimized libcef_dll_wrapper.lib optimized mhook.lib optimized winsshare.lib optimized DuiLib_u.lib debug cryptlibd.lib optimized cryptlib.lib)
+
+#使用预编译头
+macro(use_precompiled_header TARGET HEADER_FILE SRC_FILE)
+  get_filename_component(HEADER ${HEADER_FILE} NAME)
+  if (MSVC)
+    set_property(TARGET ${TARGET} APPEND_STRING PROPERTY
+      COMPILE_FLAGS " /Yu\"${HEADER}\"")
+    set_property(TARGET ${TARGET} APPEND_STRING PROPERTY
+      COMPILE_FLAGS " /FI\"${HEADER}\"")
+    set_source_files_properties(${SRC_FILE}
+      PPROPERTIES COMPILE_FLAGS /Yc"${HEADER}")
+  endif ()
+endmacro(use_precompiled_header)
+
+use_precompiled_header(${ProjectName}
+    "${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.cpp")
+
+#解决预编译头的虚拟内存偏小问题
+set(OGRE_BUILD_MSVC_ZM TRUE)
+if(OGRE_BUILD_MSVC_ZM)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm200")
+ endif ()
